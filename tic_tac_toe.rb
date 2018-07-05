@@ -1,27 +1,28 @@
 class TicTacToe
-	attr_reader :moves, :player1, :player2
+	attr_reader :moves, :player1, :player2, :player1_score, :player2_score
 
 	def initialize
-		@board = [
-			["\u2780","\u2781","\u2782"],
-			["\u2783","\u2784","\u2785"],
-			["\u2786","\u2787","\u2788"]
-		]
+		@board = Board.new
+		@player1 = Player.new
+		@player2 = Player.new
+		@player1_score = 0
+		@player2_score = 0
 		@moves = {
 			1 => [0,0], 2 => [0,1], 3 => [0,2],
 			4 => [1,0], 5 => [1,1], 6 => [1,2],
 			7 => [2,0], 8 => [2,1], 9 => [2,2]
-		}
-		@player1 = Player.new
-		@player2 = Player.new
+		}	
 	end
 
 	def display_board
-		@board.each { |line| puts "\t#{line}" }
+		@board.new_board.each { |line| puts "\t#{line}" }
 	end
 
 	def player_move(token, board, move)
-		board[move[0]][move[1]] = token
+		raise MyError if board[move[0]][move[1]] == "\u2718" ||
+			board[move[0]][move[1]] == "\u25CF"
+	
+			board[move[0]][move[1]] = token
 	end
 
 	def winner_found?(token, board)
@@ -48,26 +49,47 @@ class TicTacToe
 	end
 
 	def start_game
+		display_board
 		i = 1
 		while i <= 9
-			puts "Turn #{i} >>"
-			display_board
 			current_player = ''
+			# change players turns vith odd/even numbers
 			i % 2 != 0 ? current_player = @player1 : current_player = @player2
-			puts "Enter position number(1-9) #{current_player.username},"
-			print "your token is #{current_player.user_token} >> "
-			player_move = gets.chomp.to_i
-			player_move(current_player.user_token, @board, @moves[player_move])
-			win = winner_found?(current_player.user_token, @board)
+			puts "<< Turn #{i} >>"
+			print "#{current_player.username} #{current_player.user_token} enter "
+			print "position number (1-9) >> "
+			begin
+				player_move = gets.chomp.to_i
+				player_move(current_player.user_token, @board.new_board, @moves[player_move])
+			rescue NoMethodError
+				print "Invalid input, enter digit 1-9 for target position! >>"
+				retry
+			rescue MyError
+				puts "Invalid input position already assign! Try again! >>"
+				retry
+			end
+			win = winner_found?(current_player.user_token, @board.new_board)
+			display_board
 			if win == true
-				display_board
+				current_player == @player1 ? @player1_score += 1 : @player2 += 1
 				puts "PLAYER #{current_player.username} WON!"
-				exit
+				puts "#{@player1.username} #{@player1_score} : #{@player2.username} #{@player2_score}"
+				new_game
 			end
 			i += 1
 		end
-		display_board
-		puts "DRAW, no winner!!!"
+		puts "DRAW !!!"
+		puts "#{@player1.username} #{@player1_score} : #{@player2.username} #{@player2_score}"
+		new_game
+	end
+
+	def new_game
+		@board = Board.new #reset map
+		@player1, @player2 = @player2, @player1#new game players swap turns
+		@player1_score, @player2_score = @player2_score, @player1_score 
+		puts "New game : type y/n"
+		input = gets.chomp
+		input == 'y' ? start_game : exit	
 	end
 end
 
@@ -80,6 +102,21 @@ class Player
 		@username = gets.chomp
 		@user_token = @@token.pop
 	end
+end
+
+class Board
+	attr_reader :new_board
+
+	def initialize
+		@new_board = [
+			["\u2780","\u2781","\u2782"],
+			["\u2783","\u2784","\u2785"],
+			["\u2786","\u2787","\u2788"]
+		]
+	end
+end
+
+class MyError < StandardError;
 end
 
 game = TicTacToe.new
