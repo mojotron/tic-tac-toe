@@ -1,6 +1,4 @@
 class TicTacToe
-	#special tnx to my nephews Eric, Adrijan, Bruno,
-	#without your testing this project would be much less awesome :p
 	attr_reader :board, :player1, :player2
 
 	def initialize
@@ -9,14 +7,10 @@ class TicTacToe
 		@player2 = Player.new	
 	end
 
-	def display_board #display board array line by line
-		@board.new_board.each { |line| puts "\t#{line.to_s.gsub('"','').gsub(',', ' |')}" }
-	end
-
 	def player_move(token, board, move)
 		#raise error if player trys reassign position
-		raise MyAssignementError if board[move[0]][move[1]] == "\u2718" ||
-			board[move[0]][move[1]] == "\u25CF"
+		raise DoubleAssignementError if board[move[0]][move[1]] == "\u2718" ||
+			board[move[0]][move[1]] == "\u274d"
 		#place token on wanted position	
 		board[move[0]][move[1]] = token
 	end
@@ -35,8 +29,8 @@ class TicTacToe
 	end
 
 	def start_game
-		display_board
-		9.times do |i| #9 position, so 9 possible turns
+		@board.display_board
+		9.times do |i| #9 position, for 9 possible turns
 			current_player = ''
 			# change players turns vith odd/even numbers
 			(i+1) % 2 != 0 ? current_player = @player1 : current_player = @player2
@@ -50,20 +44,23 @@ class TicTacToe
 			rescue NoMethodError
 				print "Invalid input, enter digit 1-9 for target position! >>"
 				retry
-			rescue MyError
+			rescue DoubleAssignementError
 				puts "Invalid input position already assign! Try again! >>"
 				retry
 			end
 			win = winner_found?(current_player.user_token, @board.new_board, @board.win_positions)
-			display_board
+			@board.display_board
 			if win == true
 				current_player.score += 1
-				puts "PLAYER #{current_player.username} WON!"
-				score_board_display
-				new_game
+				end_game_log("PLAYER #{current_player.username} WON!")
 			end
 		end
-		puts "DRAW !!!"
+		end_game_log("DRAW!!!")
+	end
+
+	private
+	def end_game_log(message)
+		puts message
 		score_board_display
 		new_game
 	end
@@ -119,9 +116,15 @@ class Board
 			8 => [moves[3],moves[5],moves[7]]
 		}
 	end
+	
+	def display_board #display board array line by line
+		@new_board.each do |line| 
+		 puts "\t\s#{line.to_s.gsub(/"/,'').gsub(/[,\[\]]/, "|")}"
+		 end
+	end
 end
 
-class MyAssignementError < StandardError;
+class DoubleAssignementError < StandardError;
 end
 
 game = TicTacToe.new
