@@ -41,16 +41,13 @@ class TicTacToe
 	def winner_found?(token, board, win_positions) #check for 1 of 8 winning posibilitys
 		winner_found = false #flag variable
 		win_positions.each do |key, value|
-			win = []
-			value.each do |item|
-				board[item[0]][item[1]] == token ? win.push(true) :
-					win.push(false)
+			win = value.collect do |item|
+				board[item[0]][item[1]] == token 
 			end
 			winner_found = true if win.all? {|x| x == true}
 		end
 		winner_found
 	end
-
 
 	def player_move(token, board, move)
 		#raise error if player trys reassign position
