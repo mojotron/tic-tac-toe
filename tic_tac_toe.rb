@@ -8,6 +8,7 @@ class TicTacToe
 	end
 
 	def start_game
+		puts `clear`
 		@board.display_board
 		9.times do |i| #9 position, for 9 possible turns
 			current_player = ''
