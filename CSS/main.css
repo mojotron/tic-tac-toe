@@ -1,0 +1,102 @@
+:root {
+}
+body {
+  box-sizing: border-box;
+  height: 100vh;
+  width: 100%;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "Alfa Slab One", monospace;
+}
+/*HEADER WRAPPER */
+.header-wrapper {
+  z-index: 3;
+}
+.header-wrapper h1 {
+  position: relative;
+  top: 2rem;
+  text-align: center;
+  padding: 50px 0;
+  font-size: 3rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+.header-wrapper h1::before {
+  content: "TIC";
+  position: relative;
+  bottom: 1.4rem;
+  left: 2.5rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+.header-wrapper h1::after {
+  content: "TOE";
+  position: relative;
+  top: 1.4rem;
+  right: 2.5rem;
+  color: rgba(0, 0, 0, 0.9);
+}
+/*PLAYER HIGHLIGHT */
+.player-highlight {
+  width: 100%;
+  z-index: 3;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  margin: 30px;
+}
+.player-name,
+.player-marker {
+  font-size: 1.3rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+.player-marker {
+  font-size: 1.5rem;
+  position: relative;
+  top: 2px;
+}
+/* PLAYER WRAPPER */
+.player-wrapper {
+  z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+}
+.left-player,
+.right-player {
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.left-player {
+  background: linear-gradient(
+    90deg,
+    rgb(50, 241, 241),
+    rgb(225, 241, 241),
+    #fff
+  );
+}
+/* GAME BOARD */
+.game-bored-wrapper {
+  z-index: 3;
+}
+.game-board {
+  background-color: rgba(0, 0, 0, 0.8);
+  height: 300px;
+  width: 300px;
+  display: grid;
+  grid-template-areas:
+    "topleft topmid toptmid"
+    "midleft midmid midright"
+    "botleft botmid botmid";
+  grid-gap: 5px;
+}
+.board-square {
+  z-index: 3;
+  background-color: white;
+}
