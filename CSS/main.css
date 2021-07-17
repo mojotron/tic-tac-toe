@@ -18,6 +18,7 @@ body {
 .header-wrapper h1 {
   position: relative;
   top: 2rem;
+  left: 10px;
   text-align: center;
   padding: 50px 0;
   font-size: 3rem;
@@ -74,29 +75,32 @@ body {
   align-items: center;
 }
 .left-player {
-  background: linear-gradient(
-    90deg,
-    rgb(50, 241, 241),
-    rgb(225, 241, 241),
-    #fff
-  );
+  background: linear-gradient(90deg, rgb(50, 241, 241), rgb(225, 241, 241));
+}
+.right-player {
+  background: linear-gradient(90deg, rgb(225, 241, 241), rgb(50, 241, 241));
 }
 /* GAME BOARD */
 .game-bored-wrapper {
+  box-sizing: border-box;
   z-index: 3;
 }
 .game-board {
+  box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.8);
   height: 300px;
   width: 300px;
   display: grid;
-  grid-template-areas:
-    "topleft topmid toptmid"
-    "midleft midmid midright"
-    "botleft botmid botmid";
+  grid-template-rows: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   grid-gap: 5px;
 }
 .board-square {
+  font-size: 5rem;
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
   z-index: 3;
   background-color: white;
 }
