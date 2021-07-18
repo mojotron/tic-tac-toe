@@ -12,10 +12,24 @@ const boardFactory = function () {
     if (i < 0 || i > 9) return;
     board[i] = marker;
   };
-  return { printBoard, boardFull, getMarketAt, setMarkerAt };
+  const checkWinCondition = function (marker) {
+    const winnerLines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+    for (let line of winnerLines) {
+      if (line.every((i) => getMarketAt(i) === marker)) return true;
+    }
+    return false;
+  };
+  return { printBoard, boardFull, getMarketAt, setMarkerAt, checkWinCondition };
 };
-
-const temp = boardFactory();
 
 const playerFactory = function (nick, marker) {
   const getNick = () => nick;
@@ -27,14 +41,23 @@ const ticTacToeFactory = function (player1, marker1, player2, marker2) {
   const board = boardFactory();
   const p1 = playerFactory(player1, marker1);
   const p2 = playerFactory(player2, marker2);
+  //Decide who goes first for round 2 then alternate between rounds
+  let currentPlayer = p1;
+  const squares = document.querySelectorAll(".board-square");
+  for (let square of squares) {
+    square.addEventListener("click", function (e) {
+      const square = e.target.dataset.square;
+      if (board.getMarketAt(square)) return;
+      e.target.textContent = currentPlayer.getMarker();
+      board.setMarkerAt(square, currentPlayer.getMarker());
+      //Check win condition or
+      if (board.checkWinCondition(currentPlayer.getMarker()))
+        alert(`WINNER IS ${currentPlayer.getNick()}`);
+      //If board is full and no win condition its draw
+      if (board.boardFull()) alert("DRAW");
+      currentPlayer = currentPlayer === p1 ? p2 : p1;
+    });
+  }
 };
 
 const newGame = ticTacToeFactory("Neo", "🚀", "Rusty", "🐶");
-let counter = 0;
-const squares = document.querySelectorAll(".board-square");
-for (let square of squares) {
-  square.addEventListener("click", function (e) {
-    e.target.textContent = counter % 2 === 0 ? "🐉" : "🦄";
-    counter++;
-  });
-}
