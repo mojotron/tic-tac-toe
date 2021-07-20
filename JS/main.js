@@ -36,11 +36,16 @@ const playerFactory = function (nick, marker) {
   return { getNick, getMarker };
 };
 
-const ticTacToeFactory = function (player1, marker1, player2, marker2) {
-  //Set up elements
-  const board = boardFactory();
-  const p1 = playerFactory(player1, marker1);
-  const p2 = playerFactory(player2, marker2);
+const TicTacToe = (function () {
+  const modal = document.querySelector(".new-game-select");
+  const newGameBtn = document.querySelector(".btn-new-game");
+  const newRoundBtn = document.querySelector(".btn-new-round");
+  const squares = document.querySelectorAll(".board-square");
+  let board = boardFactory();
+  const p1 = playerFactory("player1", "x");
+  const p2 = playerFactory("player2", "o");
+  let p1Score = 0;
+  let p2Score = 0;
   const gameEngine = function (event) {
     const targetSquare = event.target.dataset.square;
     if (board.getMarketAt(targetSquare)) return; //Guard clause when square already selected
@@ -48,7 +53,9 @@ const ticTacToeFactory = function (player1, marker1, player2, marker2) {
     board.setMarkerAt(targetSquare, currentPlayer.getMarker()); //Set marker to js board object
     //Check for win
     if (board.winCheck(currentPlayer.getMarker())) {
-      alert(`WINNER IS ${currentPlayer.getNick()}`);
+      displayMsg(`${currentPlayer.getMarker().toUpperCase()} won the round!`);
+      newRoundBtn.classList.remove("none");
+      modal.classList.remove("hidden");
       return;
     }
     //Check for draw (map is full)
@@ -61,10 +68,24 @@ const ticTacToeFactory = function (player1, marker1, player2, marker2) {
   };
   //Decide who goes first for round 2 then alternate between rounds
   let currentPlayer = p1;
-  const squares = document.querySelectorAll(".board-square");
+
   for (let square of squares) {
     square.addEventListener("click", (e) => gameEngine(e));
   }
-};
 
-const newGame = ticTacToeFactory("Neo", "x", "Rusty", "o");
+  const newBoard = function () {
+    board = boardFactory();
+    for (let square of squares) square.textContent = "";
+  };
+
+  const displayMsg = function (msg) {
+    const element = document.querySelector(".option-msg");
+    element.textContent = msg;
+  };
+  //ON NEW GAME RESET ALL
+  newGameBtn.addEventListener("click", function (e) {
+    modal.classList.add("hidden");
+    newBoard();
+  });
+  //ON NEW ROUND RESET BOARD
+})();

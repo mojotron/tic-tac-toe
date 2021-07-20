@@ -57,6 +57,13 @@ body {
   position: relative;
   top: 2px;
 }
+.score-board {
+  font-size: 1.5rem;
+  letter-spacing: 1rem;
+  position: relative;
+  left: 10px;
+  color: rgba(0, 0, 0, 0.7);
+}
 /* PLAYER WRAPPER */
 .player-wrapper {
   z-index: 1;
@@ -110,11 +117,10 @@ body {
 .new-game-select {
   z-index: 10;
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 25vh;
-  width: 100vw;
-  background-color: rgb(218, 253, 248);
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
   opacity: 0.85;
   display: flex;
   justify-content: center;
@@ -124,6 +130,15 @@ body {
   text-align: center;
   font-size: 2rem;
   padding-bottom: 1rem;
+  margin-top: 1.5rem;
+}
+.modal-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 25vh;
+  width: 100vw;
+  background-color: rgb(218, 253, 248);
 }
 .btn-wrapper,
 .btn {
@@ -140,6 +155,11 @@ body {
   color: #000;
   border: 3px solid #000;
   background-color: rgb(50, 241, 241);
+}
+.btn:hover {
+  background-color: rgb(1, 248, 248);
+  color: rgba(0, 0, 0, 0.8);
+  border-color: rgba(0, 0, 0, 0.8);
 }
 .none {
   display: none;
