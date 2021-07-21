@@ -173,4 +173,7 @@ body {
   .btn-wrapper {
     flex-direction: column;
   }
+  .modal-wrapper {
+    top: 60%;
+  }
 }
