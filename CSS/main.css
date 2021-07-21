@@ -81,10 +81,10 @@ body {
   justify-content: center;
   align-items: center;
 }
-.left-player {
+.left-player-effect {
   background: linear-gradient(90deg, rgb(50, 241, 241), rgb(225, 241, 241));
 }
-.right-player {
+.right-player-effect {
   background: linear-gradient(90deg, rgb(225, 241, 241), rgb(50, 241, 241));
 }
 /* GAME BOARD */
@@ -134,8 +134,7 @@ body {
 }
 .modal-wrapper {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 45%;
   height: 25vh;
   width: 100vw;
   background-color: rgb(218, 253, 248);

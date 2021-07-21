@@ -41,9 +41,27 @@ const TicTacToe = (function () {
   const newGameBtn = document.querySelector(".btn-new-game");
   const newRoundBtn = document.querySelector(".btn-new-round");
   const squares = document.querySelectorAll(".board-square");
+  const left = document.querySelector(".left-player");
+  const right = document.querySelector(".right-player");
+  const scoreBoard = document.querySelector(".score-board");
+  const leftScore = document.querySelector(".left-score");
+  const rightScore = document.querySelector(".right-score");
+
   let board = boardFactory();
   const p1 = playerFactory("player1", "x");
   const p2 = playerFactory("player2", "o");
+
+  const currentPlayerEffect = function () {
+    if (currentPlayer === p1) {
+      left.classList.add("left-player-effect");
+      right.classList.remove("right-player-effect");
+    } else {
+      left.classList.remove("left-player-effect");
+      right.classList.add("right-player-effect");
+    }
+  };
+
+  let currentPlayer = p1;
   let p1Score = 0;
   let p2Score = 0;
   const gameEngine = function (event) {
@@ -54,6 +72,11 @@ const TicTacToe = (function () {
     //Check for win
     if (board.winCheck(currentPlayer.getMarker())) {
       displayMsg(`${currentPlayer.getMarker().toUpperCase()} won the round!`);
+      currentPlayer === p1 ? p1Score++ : p2Score++;
+      scoreBoard.classList.remove("none");
+
+      leftScore.textContent = p1Score;
+      rightScore.textContent = p2Score;
       newRoundBtn.classList.remove("none");
       modal.classList.remove("hidden");
       return;
@@ -65,9 +88,9 @@ const TicTacToe = (function () {
     }
     //No win solution swap current player
     currentPlayer = currentPlayer === p1 ? p2 : p1;
+    currentPlayerEffect();
   };
   //Decide who goes first for round 2 then alternate between rounds
-  let currentPlayer = p1;
 
   for (let square of squares) {
     square.addEventListener("click", (e) => gameEngine(e));
@@ -85,6 +108,16 @@ const TicTacToe = (function () {
   //ON NEW GAME RESET ALL
   newGameBtn.addEventListener("click", function (e) {
     modal.classList.add("hidden");
+    currentPlayerEffect();
+    newBoard();
+    p1Score = 0;
+    p2Score = 0;
+    scoreBoard.classList.add("none");
+  });
+  newRoundBtn.addEventListener("click", function (e) {
+    modal.classList.add("hidden");
+    currentPlayer = currentPlayer === p1 ? p2 : p1;
+    currentPlayerEffect();
     newBoard();
   });
   //ON NEW ROUND RESET BOARD
