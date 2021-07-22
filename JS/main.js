@@ -36,6 +36,11 @@ const playerFactory = function (nick, marker) {
   return { getNick, getMarker };
 };
 
+const aiPlayer = function () {
+  const { getNick, getMarker } = playerFactory("AI", "o");
+  return { getNick, getMarker };
+};
+
 (function () {
   //DOM element selectors
   const modal = document.querySelector(".new-game-select");
