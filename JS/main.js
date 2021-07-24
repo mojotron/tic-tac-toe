@@ -149,7 +149,10 @@
 ///////////////////////////////////////////////
 // MINIMAX
 ///////////////////////////////////////////////
-const board = ["x", null, "o", null, "x", "o", null, null, "x"];
+const board = [null, null, null, null, null, null, null, null, null];
+const player = "x";
+const ai = "o";
+// displayBoard(board);
 const winnerLines = [
   [0, 1, 2],
   [3, 4, 5],
@@ -174,26 +177,49 @@ const checkForWin = function (marker, line, board) {
 };
 const evaluate = function (boardState) {
   //Evaluate bored in current state, look for maximizer or minimizer score
-  //AI is a maximizer => marker o, player is minimizer => marker x
   for (let line of winnerLines) {
     if (checkForWin("x", line, boardState)) return 10;
     if (checkForWin("o", line, boardState)) return -10;
   }
-  return 0;
 };
 
-const bestMove = function (boardState) {};
+function minimax(boardState, depth, isMaximizingPlayer) {
+  let score = evaluate(boardState);
+  //recursion stop conditions
+  if (score === 10) return score;
+  if (score === -10) return score;
+  if (!emptySpots(boardState)) return 0;
+  //-------------------------------------
+  if (isMaximizingPlayer) {
+    let best = -Infinity;
+    const availableMoves = emptySpots(boardState);
+    for (let move of availableMoves) {
+      boardState[move] = player;
+      best = Math.max(best, minimax(boardState, depth + 1, false));
+      boardState[move] = move;
+    }
+    return best - depth;
+  } else {
+    let best = Infinity;
+    const availableMoves = emptySpots(boardState);
+    for (let move of availableMoves) {
+      boardState[move] = ai;
+      best = Math.min(best, minimax(boardState, depth + 1, true));
+      boardState[move] = move;
+    }
+    return best + depth;
+  }
+}
 
-console.log(evaluate(board));
-//evaluate test
-console.log(evaluate(["x", "o", "o", null, "x", null, null, null, "x"]));
-console.log(evaluate(["o", "o", "o", null, "x", "x", null, null, "x"]));
-console.log(evaluate(["x", "o", "x", "o", "x", "x", "o", "x", "o"]));
-//board full test
-console.log(boardFull(["x", "o", "o", null, "x", null, null, null, "x"]));
-console.log(boardFull(["o", "o", "o", null, "x", "x", null, null, "x"]));
-console.log(boardFull(["x", "o", "x", "o", "x", "x", "o", "x", "o"]));
-//empty spots test
-console.log(emptySpots(["x", "o", "o", null, "x", null, null, null, "x"]));
-console.log(emptySpots(["o", "o", "o", null, "x", "x", null, null, "x"]));
-console.log(emptySpots(["x", "o", "x", "o", "x", "x", "o", "x", "o"]));
+const bestMove = function (boardState) {
+  let bestMove = [];
+  const availableMoves = emptySpots(boardState); //get all available moves
+  for (let move of availableMoves) {
+    boardState[move] = "o";
+    bestMove.push([move, minimax(boardState, 0, true)]);
+    boardState[move] = move;
+  }
+  return bestMove;
+};
+const tempBoard = [null, null, null, null, null, null, null, null, null];
+console.log(bestMove(tempBoard));
