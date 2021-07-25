@@ -149,10 +149,25 @@
 ///////////////////////////////////////////////
 // MINIMAX
 ///////////////////////////////////////////////
+//Helper functions for development
+//Print current state of the board
+function printBoard(board) {
+  let final = "";
+  let i = 0;
+  for (let row = 0; row < 3; row++) {
+    let makeRow = "|";
+    for (let ele = 0; ele < 3; ele++) {
+      makeRow += `${board[i] ? board[i] : "_"}|`;
+      i++;
+    }
+    final += makeRow + "\n";
+  }
+  console.log(final);
+}
+//Global Variables Players
+const playerHuman = "x";
+const playerAi = "o";
 const board = [null, null, null, null, null, null, null, null, null];
-const player = "x";
-const ai = "o";
-// displayBoard(board);
 const winnerLines = [
   [0, 1, 2],
   [3, 4, 5],
@@ -164,62 +179,112 @@ const winnerLines = [
   [2, 4, 6],
 ];
 
+//Minimax helper functions
 const boardFull = (board) => !board.includes(null);
 
-const emptySpots = function (board) {
-  return board
-    .map((ele, i) => (ele === null ? i : ele))
-    .filter((ele) => typeof ele === "number");
-};
-
-const checkForWin = function (marker, line, board) {
-  return line.every((index) => board[index] === marker);
-};
-const evaluate = function (boardState) {
-  //Evaluate bored in current state, look for maximizer or minimizer score
+function evaluate(boardState) {
   for (let line of winnerLines) {
-    if (checkForWin("x", line, boardState)) return 10;
-    if (checkForWin("o", line, boardState)) return -10;
+    //Check for winning lines of Human (maximizer)
+    if (line.every((index) => boardState[index] === playerAi)) return 10;
+    //Check for winning condition for AI (minimizer)
+    if (line.every((index) => boardState[index] === playerHuman)) return -10;
   }
-};
+  return 0;
+}
 
-function minimax(boardState, depth, isMaximizingPlayer) {
-  let score = evaluate(boardState);
-  //recursion stop conditions
-  if (score === 10) return score;
-  if (score === -10) return score;
-  if (!emptySpots(boardState)) return 0;
-  //-------------------------------------
-  if (isMaximizingPlayer) {
-    let best = -Infinity;
-    const availableMoves = emptySpots(boardState);
-    for (let move of availableMoves) {
-      boardState[move] = player;
-      best = Math.max(best, minimax(boardState, depth + 1, false));
-      boardState[move] = move;
+function availableMoves(boardState) {
+  return boardState
+    .map((ele, i) => (ele ? ele : i))
+    .filter((ele) => typeof ele === "number");
+}
+
+function minimax(boardState, depth, maximizer) {
+  //Check break condition for recursion
+  const evalScore = evaluate(boardState);
+  if (evalScore === 10 || evalScore === -10) return evalScore;
+  if (boardFull(boardState)) return 0;
+  const freeMoves = availableMoves(boardState);
+  if (maximizer) {
+    let bestMove = -1000;
+    for (let move of freeMoves) {
+      boardState[move] = playerAi;
+      bestMove = Math.max(bestMove, minimax(boardState, depth + 1, !maximizer));
+      boardState[move] = null;
     }
-    return best - depth;
+    return bestMove - depth;
   } else {
-    let best = Infinity;
-    const availableMoves = emptySpots(boardState);
-    for (let move of availableMoves) {
-      boardState[move] = ai;
-      best = Math.min(best, minimax(boardState, depth + 1, true));
-      boardState[move] = move;
+    let bestMove = 1000;
+    for (let move of freeMoves) {
+      boardState[move] = playerHuman;
+      bestMove = Math.min(bestMove, minimax(boardState, depth + 1, !maximizer));
+      boardState[move] = null;
     }
-    return best + depth;
+    return bestMove + depth;
   }
 }
 
-const bestMove = function (boardState) {
-  let bestMove = [];
-  const availableMoves = emptySpots(boardState); //get all available moves
-  for (let move of availableMoves) {
-    boardState[move] = "o";
-    bestMove.push([move, minimax(boardState, 0, true)]);
-    boardState[move] = move;
+function findBestMove(boardState) {
+  //keep track of best move and index of best move
+  let bestValue = -1000;
+  let bestMove;
+
+  const freeMoves = availableMoves(boardState);
+  for (let move of freeMoves) {
+    //put marker to free spot on board(move)
+    boardState[move] = playerAi;
+    //call minimax algorithm and save value
+    const curValue = minimax(boardState, 0, false);
+    //undo marker and restore currentState
+    boardState[move] = null;
+    //compare current value of move to best move
+    if (curValue > bestValue) {
+      bestValue = curValue;
+      bestMove = move;
+    }
   }
+  console.log(bestValue);
   return bestMove;
-};
-const tempBoard = [null, null, null, null, null, null, null, null, null];
-console.log(bestMove(tempBoard));
+}
+
+//Tests
+const state1 = ["x", "o", "x", "o", "o", "x", null, null, null];
+const state2 = ["o", null, "x", "x", null, "x", null, "o", "o"];
+const state3 = ["o", null, "x", "x", null, null, "x", "o", "o"];
+const state4 = ["x", "o", "x", "o", "o", "o", null, null, null];
+const state5 = ["x", "o", "o", "o", "x", "x", null, null, "x"];
+//Test boardFull
+// console.log(boardFull(state1));
+// console.log(boardFull(state2));
+// console.log(boardFull(state3));
+// console.log(boardFull(state4));
+// console.log(boardFull(state5));
+// console.log(boardFull(["x", "o", "o", "o", "x", "x", "o", "x", "x"]));
+//Test evaluate function
+// console.log(evaluate(state1));
+// console.log(evaluate(state2));
+// console.log(evaluate(state3));
+// console.log(evaluate(state4));
+// console.log(evaluate(state5));
+//Test availableMoves
+// console.log(availableMoves(board));
+// console.log(availableMoves(state1));
+// console.log(availableMoves(state2));
+// console.log(availableMoves(state3));
+// console.log(availableMoves(state4));
+// console.log(availableMoves(state5));
+//Test minimax
+// console.log(
+//   minimax(["o", null, "x", "x", null, "x", null, "o", "o"], 0, false)
+// );
+// console.log(findBestMove(board));
+//Test findBestMove
+// findBestMove(state1);
+while (!boardFull(board)) {
+  printBoard(board);
+  console.log("-------------");
+  const player = Number(prompt("Input number")) - 1;
+  board[player] = playerHuman;
+  const aiMove = findBestMove(board);
+  board[aiMove] = playerAi;
+}
+console.log(board);
