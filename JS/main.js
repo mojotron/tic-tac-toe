@@ -1,4 +1,20 @@
 "use strict";
+const winnerLinesFactory = function () {
+  const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  const getLines = () => lines;
+  {
+    return { getLines };
+  }
+};
 const boardFactory = function () {
   const board = Array.from({ length: 9 }, () => null);
   const getBoard = () => board;
@@ -11,23 +27,7 @@ const boardFactory = function () {
     if (i < 0 || i > 9) return;
     board[i] = marker;
   };
-  const winCheck = function (marker) {
-    const winnerLines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-    for (let line of winnerLines) {
-      if (line.every((i) => getMarkerAt(i) === marker)) return true;
-    }
-    return false;
-  };
-  return { getBoard, boardFull, getMarkerAt, setMarkerAt, winCheck };
+  return { getBoard, boardFull, getMarkerAt, setMarkerAt };
 };
 
 const playerFactory = function (nick, marker) {
@@ -38,23 +38,14 @@ const playerFactory = function (nick, marker) {
 
 const aiPlayer = function () {
   const { getNick, getMarker } = playerFactory("AI", "o");
-  const winnerLines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
+  const winnerLines = winnerLinesFactory().getLines();
   const _boardFull = (boardState) => !boardState.includes(null);
 
   function _evaluate(boardState) {
     for (let line of winnerLines) {
-      //Check for winning lines of Human (maximizer)
+      //Check for winning lines for AI (maximizer)
       if (line.every((index) => boardState[index] === "o")) return 10;
-      //Check for winning condition for AI (minimizer)
+      //Check for winning condition for player (minimizer)
       if (line.every((index) => boardState[index] === "x")) return -10;
     }
     return 0;
@@ -98,19 +89,13 @@ const aiPlayer = function () {
   }
 
   function findBestMove(boardState) {
-    //keep track of best move and index of best move
     let bestValue = -1000;
     let bestMove;
-
     const freeMoves = _availableMoves(boardState);
     for (let move of freeMoves) {
-      //put marker to free spot on board(move)
       boardState[move] = "o";
-      //call minimax algorithm and save value
       const curValue = _minimax(boardState, 0, false);
-      //undo marker and restore currentState
       boardState[move] = null;
-      //compare current value of move to best move
       if (curValue > bestValue) {
         bestValue = curValue;
         bestMove = move;
@@ -118,10 +103,10 @@ const aiPlayer = function () {
     }
     return bestMove;
   }
-  return { getNick, getMarker, findBestMove, _boardFull };
+  return { getNick, getMarker, findBestMove };
 };
+//TIC TAC TOE MODULE with game engine
 (function () {
-  //TIC TAC TOE MODULE
   //DOM selectors
   const modal = document.querySelector(".new-game-select");
   const newGame = document.querySelector(".btn-new-game");
@@ -141,12 +126,20 @@ const aiPlayer = function () {
   let startFirst;
   let p1Score;
   let p2Score;
-  let currentMode;
-  //Set up start of game state depending on option
+  const winnerLines = winnerLinesFactory().getLines();
+
+  const winCheck = function (marker) {
+    for (let line of winnerLines) {
+      if (line.every((i) => board.getMarkerAt(i) === marker)) return true;
+    }
+    return false;
+  };
+
   const newBoard = function () {
     board = boardFactory();
     for (let square of squares) square.textContent = "";
   };
+
   const currentPlayerEffect = function () {
     if (currentPlayer === p1) {
       left.classList.add("left-player-effect");
@@ -156,7 +149,9 @@ const aiPlayer = function () {
       right.classList.add("right-player-effect");
     }
   };
+
   const swapPlayer = () => (currentPlayer = currentPlayer === p1 ? p2 : p1);
+
   const displayMsg = function (msg) {
     const element = document.querySelector(".option-msg");
     element.textContent = msg;
@@ -169,8 +164,10 @@ const aiPlayer = function () {
     modal.classList.remove("hidden");
     event.target.style.color = "rgba(0, 0, 0, 0.8)";
   };
+  //Set up start of game state depending on option
   function setUpNew(p1nick, p1marker, p2nick, p2marker) {
     modal.classList.add("hidden");
+    scoreBoard.classList.add("none");
     newBoard();
     p1 = playerFactory(p1nick, p1marker);
     p2 = playerFactory(p2nick, p2marker);
@@ -179,24 +176,25 @@ const aiPlayer = function () {
     p1Score = 0;
     p2Score = 0;
     currentPlayerEffect();
-    currentMode = gameEnginePvP;
   }
+
   function setUpNewAI(p1nick, p1marker, p2nick, p2marker) {
     setUpNew(p1nick, p1marker, p2nick, p2marker);
     p2 = aiPlayer(p2nick, p2marker);
-    currentMode = gameEnginePvAI;
   }
+
   function setUpNewRound() {
     newBoard();
     modal.classList.add("hidden");
     startFirst = startFirst === p1 ? p2 : p1;
-
-    if (currentMode === gameEnginePvAI && startFirst === p2) {
+    //Ai starts first, with minimax algorithm ai will alway pick top left corner.
+    //For first move ai start with random corner for players better experience.
+    if (p2.getNick() === "AI" && startFirst === p2) {
       const firstMove = [0, 2, 6, 8][Math.trunc(Math.random() * 4)];
       board.setMarkerAt(firstMove, p2.getMarker());
       const temp = document.querySelector(`[data-square="${firstMove}"]`);
       temp.textContent = p2.getMarker();
-      currentPlayer = p1;
+      currentPlayer = p1; //return current player to p1, ai just made move
     } else {
       currentPlayer = startFirst;
       currentPlayerEffect();
@@ -210,13 +208,16 @@ const aiPlayer = function () {
   );
   newRound.addEventListener("click", () => setUpNewRound());
 
-  function gameEnginePvP(event) {
+  const aiMove = () => p2.findBestMove(board.getBoard());
+
+  function gameEngine(event) {
     const targetSquare = Number(event.target.dataset.square);
     if (board.getMarkerAt(targetSquare)) return; //Guard clause when square already selected
     board.setMarkerAt(targetSquare, currentPlayer.getMarker());
     event.textContent = currentPlayer.getMarker();
+    event.target.style.color = "rgba(0, 0, 0, 0.8)";
     //Check for win condition
-    if (board.winCheck(currentPlayer.getMarker())) {
+    if (winCheck(currentPlayer.getMarker())) {
       currentPlayer === p1 ? p1Score++ : p2Score++;
       displayMsg(`${currentPlayer.getMarker().toUpperCase()} won the round!`);
       endRoundUpdate(event);
@@ -228,52 +229,28 @@ const aiPlayer = function () {
       endRoundUpdate(event);
       return;
     }
-    swapPlayer();
-    currentPlayerEffect();
-    event.target.style.color = "rgba(0, 0, 0, 0.8)";
-  }
-
-  const aiMove = (aiPlayer) => aiPlayer.findBestMove(board.getBoard());
-
-  function gameEnginePvAI(event) {
-    const targetSquare = Number(event.target.dataset.square);
-    if (board.getMarkerAt(targetSquare)) return; //Guard clause when square already selected
-    board.setMarkerAt(targetSquare, currentPlayer.getMarker());
-    event.textContent = currentPlayer.getMarker();
-    //Check for win condition
-    if (board.winCheck(currentPlayer.getMarker())) {
-      p1Score++;
-      displayMsg(`${p1.getMarker().toUpperCase()} won the round!`);
-      endRoundUpdate(event);
-      return;
-    }
-    //Check for draw condition
-    if (board.boardFull()) {
-      displayMsg(`draw`);
-      endRoundUpdate(event);
-      return;
-    }
-    //Ai turn
-    swapPlayer();
-    currentPlayerEffect();
-    const aiSpot = aiMove(currentPlayer);
-    board.setMarkerAt(aiSpot, currentPlayer.getMarker());
-    const temp = document.querySelector(`[data-square="${aiSpot}"]`);
-    temp.textContent = currentPlayer.getMarker();
-    temp.style.color = "rgba(0, 0, 0, 0.8)";
-    if (board.winCheck(currentPlayer.getMarker())) {
-      p2Score++;
-      displayMsg(`${p2.getMarker().toUpperCase()} won the round!`);
-      endRoundUpdate(event);
-      return;
+    //Check if player is AI
+    if (currentPlayer.getNick("AI")) {
+      swapPlayer();
+      currentPlayerEffect();
+      const aiSpot = aiMove();
+      board.setMarkerAt(aiSpot, currentPlayer.getMarker());
+      const temp = document.querySelector(`[data-square="${aiSpot}"]`);
+      temp.textContent = currentPlayer.getMarker();
+      temp.style.color = "rgba(0, 0, 0, 0.8)";
+      if (winCheck(currentPlayer.getMarker())) {
+        p2Score++;
+        displayMsg(`${p2.getMarker().toUpperCase()} won the round!`);
+        endRoundUpdate(event);
+        return;
+      }
     }
     swapPlayer();
     currentPlayerEffect();
-    event.target.style.color = "rgba(0, 0, 0, 0.8)";
   }
   //Set event listener to DOM boar squares
   for (let square of squares) {
-    square.addEventListener("click", (e) => currentMode(e));
+    square.addEventListener("click", (e) => gameEngine(e));
     square.addEventListener("mouseenter", function (e) {
       if (!board.getMarkerAt(e.target.dataset.square)) {
         e.target.style.color = "rgba(0, 0, 0, 0.35)";

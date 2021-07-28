@@ -1,5 +1,3 @@
-:root {
-}
 body {
   box-sizing: border-box;
   height: 100vh;
@@ -174,6 +172,7 @@ body {
     flex-direction: column;
   }
   .modal-wrapper {
-    top: 60%;
+    transform: translateY(65%);
+    height: 35vh;
   }
 }
