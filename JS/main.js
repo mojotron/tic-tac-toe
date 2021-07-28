@@ -179,17 +179,28 @@ const aiPlayer = function () {
     p1Score = 0;
     p2Score = 0;
     currentPlayerEffect();
+    currentMode = gameEnginePvP;
   }
   function setUpNewAI(p1nick, p1marker, p2nick, p2marker) {
     setUpNew(p1nick, p1marker, p2nick, p2marker);
     p2 = aiPlayer(p2nick, p2marker);
+    currentMode = gameEnginePvAI;
   }
   function setUpNewRound() {
     newBoard();
     modal.classList.add("hidden");
     startFirst = startFirst === p1 ? p2 : p1;
-    currentPlayer = startFirst;
-    currentPlayerEffect();
+
+    if (currentMode === gameEnginePvAI && startFirst === p2) {
+      const firstMove = [0, 2, 6, 8][Math.trunc(Math.random() * 4)];
+      board.setMarkerAt(firstMove, p2.getMarker());
+      const temp = document.querySelector(`[data-square="${firstMove}"]`);
+      temp.textContent = p2.getMarker();
+      currentPlayer = p1;
+    } else {
+      currentPlayer = startFirst;
+      currentPlayerEffect();
+    }
   }
   newGame.addEventListener("click", () =>
     setUpNew("player1", "x", "player2", "o")
@@ -262,7 +273,7 @@ const aiPlayer = function () {
   }
   //Set event listener to DOM boar squares
   for (let square of squares) {
-    square.addEventListener("click", (e) => gameEnginePvAI(e));
+    square.addEventListener("click", (e) => currentMode(e));
     square.addEventListener("mouseenter", function (e) {
       if (!board.getMarkerAt(e.target.dataset.square)) {
         e.target.style.color = "rgba(0, 0, 0, 0.35)";
