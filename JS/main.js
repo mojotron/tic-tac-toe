@@ -152,20 +152,24 @@ const aiPlayer = function () {
 
   const swapPlayer = () => (currentPlayer = currentPlayer === p1 ? p2 : p1);
 
+  const swapPlayerAndApplyEffect = function () {
+    swapPlayer();
+    currentPlayerEffect();
+  };
+
   const displayMsg = function (msg) {
     const element = document.querySelector(".option-msg");
     element.textContent = msg;
   };
-  const endRoundUpdate = function (event) {
+  const endRoundUpdate = function () {
     scoreBoard.classList.remove("none");
     leftScore.textContent = p1Score;
     rightScore.textContent = p2Score;
     newRound.classList.remove("none");
     modal.classList.remove("hidden");
-    event.target.style.color = "rgba(0, 0, 0, 0.8)";
   };
   //Set up start of game state depending on option
-  function setUpNew(p1nick, p1marker, p2nick, p2marker) {
+  const setUpNew = function (p1nick, p1marker, p2nick, p2marker) {
     modal.classList.add("hidden");
     scoreBoard.classList.add("none");
     newBoard();
@@ -176,30 +180,33 @@ const aiPlayer = function () {
     p1Score = 0;
     p2Score = 0;
     currentPlayerEffect();
-  }
+  };
 
-  function setUpNewAI(p1nick, p1marker, p2nick, p2marker) {
+  const setUpNewAI = function (p1nick, p1marker, p2nick, p2marker) {
     setUpNew(p1nick, p1marker, p2nick, p2marker);
     p2 = aiPlayer(p2nick, p2marker);
-  }
-
-  function setUpNewRound() {
+  };
+  const aiPlaysFirst = function () {
+    const firstMove = [0, 2, 6, 8][Math.trunc(Math.random() * 4)];
+    board.setMarkerAt(firstMove, p2.getMarker());
+    const temp = document.querySelector(`[data-square="${firstMove}"]`);
+    temp.textContent = p2.getMarker();
+    currentPlayer = p1; //return current player to p1, ai just made move
+  };
+  const setUpNewRound = function () {
     newBoard();
     modal.classList.add("hidden");
     startFirst = startFirst === p1 ? p2 : p1;
     //Ai starts first, with minimax algorithm ai will alway pick top left corner.
     //For first move ai start with random corner for players better experience.
     if (p2.getNick() === "AI" && startFirst === p2) {
-      const firstMove = [0, 2, 6, 8][Math.trunc(Math.random() * 4)];
-      board.setMarkerAt(firstMove, p2.getMarker());
-      const temp = document.querySelector(`[data-square="${firstMove}"]`);
-      temp.textContent = p2.getMarker();
-      currentPlayer = p1; //return current player to p1, ai just made move
+      aiPlaysFirst();
     } else {
       currentPlayer = startFirst;
       currentPlayerEffect();
     }
-  }
+  };
+  //Option buttons event handlers
   newGame.addEventListener("click", () =>
     setUpNew("player1", "x", "player2", "o")
   );
@@ -207,10 +214,20 @@ const aiPlayer = function () {
     setUpNewAI("player1", "x", "AI", "o")
   );
   newRound.addEventListener("click", () => setUpNewRound());
-
+  //Game engine helper functions
   const aiMove = () => p2.findBestMove(board.getBoard());
 
-  function gameEngine(event) {
+  const drawCondition = function () {
+    displayMsg(`draw`);
+    endRoundUpdate();
+  };
+  const winCondition = function () {
+    currentPlayer === p1 ? p1Score++ : p2Score++;
+    displayMsg(`${currentPlayer.getMarker().toUpperCase()} won the round!`);
+    endRoundUpdate();
+  };
+
+  const gameEngine = function (event) {
     const targetSquare = Number(event.target.dataset.square);
     if (board.getMarkerAt(targetSquare)) return; //Guard clause when square already selected
     board.setMarkerAt(targetSquare, currentPlayer.getMarker());
@@ -218,39 +235,29 @@ const aiPlayer = function () {
     event.target.style.color = "rgba(0, 0, 0, 0.8)";
     //Check for win condition
     if (winCheck(currentPlayer.getMarker())) {
-      currentPlayer === p1 ? p1Score++ : p2Score++;
-      displayMsg(`${currentPlayer.getMarker().toUpperCase()} won the round!`);
-      endRoundUpdate(event);
-      return;
+      winCondition();
     }
     //Check for draw condition
-    if (board.boardFull()) {
-      displayMsg(`draw`);
-      endRoundUpdate(event);
-      return;
-    }
+    if (board.boardFull()) drawCondition();
     //Check if player is AI
     if (currentPlayer.getNick("AI")) {
-      swapPlayer();
-      currentPlayerEffect();
+      swapPlayerAndApplyEffect();
       const aiSpot = aiMove();
       board.setMarkerAt(aiSpot, currentPlayer.getMarker());
       const temp = document.querySelector(`[data-square="${aiSpot}"]`);
       temp.textContent = currentPlayer.getMarker();
       temp.style.color = "rgba(0, 0, 0, 0.8)";
-      if (winCheck(currentPlayer.getMarker())) {
-        p2Score++;
-        displayMsg(`${p2.getMarker().toUpperCase()} won the round!`);
-        endRoundUpdate(event);
-        return;
-      }
+      //Check win condition for ai
+      if (winCheck(currentPlayer.getMarker())) winCondition();
+      //Check for draw condition
+      if (board.boardFull()) drawCondition();
     }
-    swapPlayer();
-    currentPlayerEffect();
-  }
-  //Set event listener to DOM boar squares
+    swapPlayerAndApplyEffect();
+  };
+  //Attach event listeners on board squares, click for game engine
   for (let square of squares) {
     square.addEventListener("click", (e) => gameEngine(e));
+    //Moues enter and leave for effect to show current player his marker
     square.addEventListener("mouseenter", function (e) {
       if (!board.getMarkerAt(e.target.dataset.square)) {
         e.target.style.color = "rgba(0, 0, 0, 0.35)";
